@@ -12,15 +12,13 @@ import { AdminLogin } from './components/AdminLogin';
 import { ClientPortal } from './components/ClientPortal';
 import { PortfolioShowcase } from './components/PortfolioShowcase';
 import { BotHealthTerminal } from './components/BotHealthTerminal';
-import { ProjectChat } from './components/ProjectChat';
 import { Footer } from './components/Footer';
 import { ProjectType, Order, AuthUser } from './types';
-import { Send, Shield, Lock, CheckCircle2, X } from 'lucide-react';
-
+import { X } from 'lucide-react';
 import { getOrders } from './services/api';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'home' | 'order' | 'admin' | 'portfolio' | 'status' | 'client' | 'chat'>(() => {
+  const [activeTab, setActiveTab] = useState<'home' | 'order' | 'admin' | 'portfolio' | 'status' | 'client'>(() => {
     try {
       const params = new URLSearchParams(window.location.search);
       const tab = params.get('tab');
@@ -30,7 +28,6 @@ export default function App() {
       if (tab === 'client') return 'client';
       if (tab === 'status') return 'status';
       if (tab === 'portfolio') return 'portfolio';
-      if (tab === 'chat') return 'chat';
     } catch (e) {}
     return 'home';
   });
@@ -39,7 +36,6 @@ export default function App() {
   const [preselectedCategory, setPreselectedCategory] = useState<ProjectType>('video');
   const [pendingCount, setPendingCount] = useState<number>(0);
   const [showAdminLoginModal, setShowAdminLoginModal] = useState<boolean>(false);
-  const [selectedChatOrderCode, setSelectedChatOrderCode] = useState<string | null>(null);
 
   // Authentication states
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => {
@@ -61,7 +57,7 @@ export default function App() {
 
   const isAdminLoggedIn = Boolean(adminToken);
 
-  const changeTab = (tab: 'home' | 'order' | 'admin' | 'portfolio' | 'status' | 'client' | 'chat') => {
+  const changeTab = (tab: 'home' | 'order' | 'admin' | 'portfolio' | 'status' | 'client') => {
     // If user tries to open admin or status tab without being logged in, show login modal
     if ((tab === 'admin' || tab === 'status') && !isAdminLoggedIn) {
       setShowAdminLoginModal(true);
@@ -101,7 +97,7 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleOrderCreated = (order: Order) => {
+  const handleOrderCreated = (_order: Order) => {
     setPendingCount((prev) => prev + 1);
   };
 
@@ -127,12 +123,6 @@ export default function App() {
     } catch (e) {}
   };
 
-  const handleNavigateToChat = (orderCode?: string) => {
-    setSelectedChatOrderCode(orderCode || null);
-    changeTab('chat');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   const handleAdminLoginSuccess = (token: string) => {
     setAdminToken(token);
     try {
@@ -150,19 +140,10 @@ export default function App() {
     changeTab('order');
   };
 
-  // Handle clicking the corner button
-  const handleCornerAdminClick = () => {
-    if (isAdminLoggedIn) {
-      setActiveTab('admin');
-    } else {
-      setShowAdminLoginModal(true);
-    }
-  };
-
   return (
     <div
       dir={lang === 'fa' ? 'rtl' : 'ltr'}
-      className="min-h-screen flex flex-col bg-[#0b0c10] text-[#f1f2f6] relative overflow-x-clip font-sans"
+      className="min-h-screen flex flex-col bg-[#07080c] text-[#f1f2f6] relative overflow-x-clip font-sans"
     >
       {/* Top Navigation */}
       <Navbar
@@ -186,11 +167,12 @@ export default function App() {
       )}
 
       {/* Main Content Area */}
-      <main className="flex-1 relative z-10 w-full pt-16 sm:pt-20 pb-24 sm:pb-12">
-        {/* VIEW 0: STUDIO HOME EXPERIENCE */}
+      <main className="flex-1 relative z-10 w-full pt-20 sm:pt-24 pb-28 sm:pb-16">
+        {/* VIEW 0: HOME EXPERIENCE */}
         {activeTab === 'home' && (
           <HomeView
             lang={lang}
+            isAdminLoggedIn={isAdminLoggedIn}
             onStartOrder={handleSelectCategoryForOrder}
             onNavigateToPortfolio={() => changeTab('portfolio')}
             onNavigateToClient={() => changeTab('client')}
@@ -217,7 +199,6 @@ export default function App() {
             onLogout={handleClientLogout}
             onNavigateToOrder={() => changeTab('order')}
             onNavigateToPortfolio={() => changeTab('portfolio')}
-            onNavigateToChat={handleNavigateToChat}
           />
         )}
 
@@ -225,25 +206,15 @@ export default function App() {
         {activeTab === 'portfolio' && (
           <PortfolioShowcase
             lang={lang}
+            isAdminLoggedIn={isAdminLoggedIn}
             onSelectCategoryForOrder={handleSelectCategoryForOrder}
           />
         )}
 
-        {/* VIEW 4: ONLINE PROJECT CHAT / DISCUSSION */}
-        {activeTab === 'chat' && (
-          <ProjectChat
-            lang={lang}
-            currentUser={currentUser}
-            isAdmin={isAdminLoggedIn}
-            initialOrderCode={selectedChatOrderCode}
-            onNavigateToOrder={() => changeTab('order')}
-          />
-        )}
-
-        {/* VIEW 5: ADMIN MANAGEMENT HUB (Protected: Only accessible when logged in with password Mohmah123) */}
+        {/* VIEW 4: ADMIN MANAGEMENT HUB */}
         {activeTab === 'admin' && (
           isAdminLoggedIn ? (
-            <AdminPanel lang={lang} onLogout={handleAdminLogout} onNavigateToChat={handleNavigateToChat} />
+            <AdminPanel lang={lang} onLogout={handleAdminLogout} />
           ) : (
             <AdminLogin
               lang={lang}
@@ -253,7 +224,7 @@ export default function App() {
           )
         )}
 
-        {/* VIEW 6: SYSTEM LOGS (Protected: Also ONLY accessible when admin is logged in!) */}
+        {/* VIEW 5: SYSTEM LOGS */}
         {activeTab === 'status' && (
           isAdminLoggedIn ? (
             <BotHealthTerminal lang={lang} />
@@ -267,48 +238,13 @@ export default function App() {
         )}
       </main>
 
-      {/* CORNER BUTTON: "پنل ادمین" AS REQUESTED BY USER */}
-      <div className="fixed bottom-6 right-6 z-40 flex items-center gap-2">
-        <button
-          onClick={handleCornerAdminClick}
-          className={`flex items-center gap-2 px-4 py-3 rounded-2xl shadow-2xl transition-all duration-300 border text-xs font-bold ${
-            isAdminLoggedIn
-              ? 'bg-[#1e1e1e]/90 hover:bg-[#252525] text-[#d0bcff] border-[#d0bcff]/40 shadow-[#d0bcff]/10'
-              : 'bg-[#181818]/90 hover:bg-[#222222] text-[#e5e2e1] border-white/15 hover:border-[#d0bcff]/40'
-          } backdrop-blur-xl hover:scale-105 active:scale-95`}
-          title={isAdminLoggedIn ? 'پنل ادمین فعال است (کلیک برای مشاهده)' : 'ورود به پنل ادمین با رمز عبور'}
-        >
-          <Shield className="w-4 h-4 text-[#d0bcff]" />
-          <span>{lang === 'fa' ? 'پنل ادمین' : 'Admin Panel'}</span>
-          {isAdminLoggedIn ? (
-            <span className="w-2 h-2 rounded-full bg-[#a3e635] animate-pulse" />
-          ) : (
-            <Lock className="w-3 h-3 text-[#ffb869]" />
-          )}
-        </button>
-      </div>
-
-      {/* Floating direct Telegram Channel link button on bottom-left */}
-      <a
-        href="https://t.me/RITM_FreeLancer"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 left-6 z-40 p-3.5 rounded-full bg-[#d0bcff] text-[#131313] shadow-2xl hover:scale-110 active:scale-95 transition-all flex items-center gap-2 group hover:shadow-[#d0bcff]/30 cursor-pointer"
-        title="کانال رسمی تلگرام ریتم"
-      >
-        <Send className="w-5 h-5 fill-current" />
-        <span className="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs transition-all duration-300 font-bold text-xs px-0 group-hover:px-1">
-          @RITM_FreeLancer
-        </span>
-      </a>
-
-      {/* ADMIN LOGIN MODAL (When corner button or protected route is clicked) */}
+      {/* ADMIN LOGIN MODAL */}
       {showAdminLoginModal && !isAdminLoggedIn && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
-          <div className="relative w-full max-w-md">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-md overflow-y-auto">
+          <div className="relative w-full max-w-md my-auto">
             <button
               onClick={() => setShowAdminLoginModal(false)}
-              className="absolute top-4 left-4 z-10 p-2 rounded-full bg-white/10 hover:bg-white/20 text-[#e5e2e1] transition-colors"
+              className="absolute top-4 left-4 z-10 p-2 rounded-full bg-white/10 hover:bg-white/20 text-[#e5e2e1] transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -321,8 +257,13 @@ export default function App() {
         </div>
       )}
 
-      {/* Footer */}
-      <Footer lang={lang} />
+      {/* Footer (with simple admin access button) */}
+      <Footer
+        lang={lang}
+        isAdminLoggedIn={isAdminLoggedIn}
+        onOpenAdminLogin={() => setShowAdminLoginModal(true)}
+        onNavigateToAdmin={() => changeTab('admin')}
+      />
     </div>
   );
 }

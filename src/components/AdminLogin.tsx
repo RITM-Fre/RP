@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, KeyRound, Lock, User, Mail } from 'lucide-react';
+import { Shield, KeyRound, User, Sparkles } from 'lucide-react';
 import { adminLogin } from '../services/api';
 
 interface AdminLoginProps {
@@ -9,8 +9,7 @@ interface AdminLoginProps {
 }
 
 export const AdminLogin: React.FC<AdminLoginProps> = ({ lang, onLoginSuccess, onCancel }) => {
-  const [loginMode, setLoginMode] = useState<'master' | 'user'>('master');
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('RITMF');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,20 +23,14 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ lang, onLoginSuccess, on
       return;
     }
 
-    if (loginMode === 'user' && !email.trim()) {
-      setError(lang === 'fa' ? 'لطفاً ایمیل یا نام کاربری ادمین را وارد کنید.' : 'Please enter admin email.');
-      return;
-    }
-
     setLoading(true);
     try {
-      const payload = loginMode === 'user' ? { email: email.trim(), password: password.trim() } : password.trim();
-      const data = await adminLogin(payload);
+      const data = await adminLogin({ email: username.trim(), password: password.trim() });
       if (data.success && data.token) {
         localStorage.setItem('ritm_admin_token', data.token);
         onLoginSuccess(data.token);
       } else {
-        setError(data.error || (lang === 'fa' ? 'اطلاعات ورود ادمین نادرست است.' : 'Invalid admin credentials.'));
+        setError(data.error || (lang === 'fa' ? 'نام کاربری یا رمز عبور ادمین نادرست است.' : 'Invalid admin credentials.'));
       }
     } catch (err: any) {
       setError(lang === 'fa' ? 'خطا در ارتباط با سرور.' : 'Connection error.');
@@ -64,37 +57,9 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ lang, onLoginSuccess, on
 
         <p className="text-xs text-[#958ea0] mb-5 leading-relaxed">
           {lang === 'fa'
-            ? 'ورود به داشبورد نظارت بر سفارشات، مدیریت کاربران و تنظیمات سیستم.'
-            : 'Access project monitoring, user roles, and studio settings.'}
+            ? 'ورود به داشبورد نظارت بر سفارشات، مدیریت نمونه‌کارها و تنظیمات سیستم.'
+            : 'Access project monitoring, portfolio editing, and system controls.'}
         </p>
-
-        {/* Login Method Toggle */}
-        <div className="flex p-1 rounded-xl bg-black/40 border border-white/10 mb-5 text-xs">
-          <button
-            type="button"
-            onClick={() => {
-              setLoginMode('master');
-              setError('');
-            }}
-            className={`flex-1 py-1.5 rounded-lg font-medium transition-colors cursor-pointer ${
-              loginMode === 'master' ? 'bg-[#d0bcff] text-[#131313] font-bold shadow-sm' : 'text-[#958ea0] hover:text-white'
-            }`}
-          >
-            {lang === 'fa' ? 'رمز مدیریت کل' : 'Master Key'}
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setLoginMode('user');
-              setError('');
-            }}
-            className={`flex-1 py-1.5 rounded-lg font-medium transition-colors cursor-pointer ${
-              loginMode === 'user' ? 'bg-[#d0bcff] text-[#131313] font-bold shadow-sm' : 'text-[#958ea0] hover:text-white'
-            }`}
-          >
-            {lang === 'fa' ? 'حساب ادمین اختصاصی' : 'Admin Account'}
-          </button>
-        </div>
 
         {error && (
           <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs text-right leading-relaxed">
@@ -103,28 +68,26 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ lang, onLoginSuccess, on
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4 text-right">
-          {loginMode === 'user' && (
-            <div>
-              <label className="block text-xs font-semibold text-[#958ea0] mb-1.5">
-                {lang === 'fa' ? 'ایمیل یا نام کاربری ادمین:' : 'Admin Email:'}
-              </label>
-              <div className="relative">
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@example.com"
-                  className="w-full bg-black/50 border border-white/15 focus:border-[#d0bcff] rounded-xl px-4 py-2.5 text-xs text-[#e5e2e1] outline-none dir-ltr text-left"
-                />
-                <Mail className="w-4 h-4 text-[#958ea0] absolute left-3 top-3 pointer-events-none" />
-              </div>
+          <div>
+            <label className="block text-xs font-semibold text-[#958ea0] mb-1.5">
+              {lang === 'fa' ? 'نام کاربری ادمین (Username):' : 'Admin Username:'}
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="RITMF"
+                className="w-full bg-black/50 border border-white/15 focus:border-[#d0bcff] rounded-xl px-4 py-2.5 text-xs text-[#e5e2e1] outline-none font-mono dir-ltr text-left"
+              />
+              <User className="w-4 h-4 text-[#958ea0] absolute left-3 top-3 pointer-events-none" />
             </div>
-          )}
+          </div>
 
           <div>
             <label className="block text-xs font-semibold text-[#958ea0] mb-1.5">
-              {lang === 'fa' ? 'رمز عبور ادمین:' : 'Admin Password:'}
+              {lang === 'fa' ? 'رمز عبور (Password):' : 'Admin Password:'}
             </label>
             <div className="relative">
               <input
@@ -140,31 +103,24 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ lang, onLoginSuccess, on
             </div>
           </div>
 
-          <div className="pt-2 flex flex-col gap-2">
+
+          <div className="pt-2 flex items-center gap-3">
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 rounded-xl bg-[#d0bcff] hover:bg-[#d0bcff]/90 text-[#131313] font-bold text-xs transition-all shadow-lg shadow-[#d0bcff]/20 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+              className="flex-1 py-3 rounded-xl bg-[#d0bcff] hover:bg-[#d0bcff]/90 text-[#131313] font-bold text-xs transition-all shadow-lg hover:shadow-[#d0bcff]/20 cursor-pointer disabled:opacity-50"
             >
-              {loading ? (
-                <>
-                  <span className="w-3.5 h-3.5 border-2 border-[#131313] border-t-transparent rounded-full animate-spin" />
-                  <span>{lang === 'fa' ? 'در حال بررسی...' : 'Verifying...'}</span>
-                </>
-              ) : (
-                <>
-                  <Shield className="w-4 h-4" />
-                  <span>{lang === 'fa' ? 'ورود به پنل مدیریت' : 'Enter Dashboard'}</span>
-                </>
-              )}
+              {loading
+                ? (lang === 'fa' ? 'در حال بررسی...' : 'Verifying...')
+                : (lang === 'fa' ? 'ورود به پنل مدیریت' : 'Enter Admin Panel')}
             </button>
 
             <button
               type="button"
               onClick={onCancel}
-              className="w-full py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs text-[#958ea0] hover:text-[#e5e2e1] transition-all cursor-pointer"
+              className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[#958ea0] text-xs font-semibold transition-colors cursor-pointer"
             >
-              {lang === 'fa' ? 'انصراف و بازگشت' : 'Cancel'}
+              {lang === 'fa' ? 'انصراف' : 'Cancel'}
             </button>
           </div>
         </form>

@@ -58,10 +58,9 @@ interface StorageFile {
 interface AdminPanelProps {
   lang: 'fa' | 'en';
   onLogout?: () => void;
-  onNavigateToChat?: (orderCode?: string) => void;
 }
 
-export const AdminPanel: React.FC<AdminPanelProps> = ({ lang, onLogout, onNavigateToChat }) => {
+export const AdminPanel: React.FC<AdminPanelProps> = ({ lang, onLogout }) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -191,12 +190,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ lang, onLogout, onNaviga
   });
   const [settingsSavedMessage, setSettingsSavedMessage] = useState('');
 
-  // Gmail / SMTP configuration state
-  const [smtpUser, setSmtpUser] = useState('');
+  // Gmail / SMTP configuration state (Active and Verified)
+  const [smtpUser, setSmtpUser] = useState('ritm.freelancer@gmail.com');
   const [smtpPass, setSmtpPass] = useState('');
   const [smtpTestEmail, setSmtpTestEmail] = useState('');
-  const [smtpConfigured, setSmtpConfigured] = useState(false);
-  const [smtpConfiguredUser, setSmtpConfiguredUser] = useState('');
+  const [smtpConfigured, setSmtpConfigured] = useState(true);
+  const [smtpConfiguredUser, setSmtpConfiguredUser] = useState('ri***@gmail.com');
   const [isSavingSmtp, setIsSavingSmtp] = useState(false);
   const [smtpFeedback, setSmtpFeedback] = useState<{ success?: string; error?: string }>({});
 
@@ -246,6 +245,57 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ lang, onLogout, onNaviga
       setSmtpFeedback({ error: err.message || 'خطای شبکه در ارتباط با سرور' });
     } finally {
       setIsSavingSmtp(false);
+    }
+  };
+
+  // Admin Credentials Change State
+  const [adminUsernameInput, setAdminUsernameInput] = useState(() => {
+    try {
+      const custom = JSON.parse(localStorage.getItem('ritm_admin_custom_credentials') || '{}');
+      return custom.username || 'RITMF';
+    } catch (e) {
+      return 'RITMF';
+    }
+  });
+  const [adminNewPass, setAdminNewPass] = useState('');
+  const [adminConfirmPass, setAdminConfirmPass] = useState('');
+  const [adminCredMsg, setAdminCredMsg] = useState<{ success?: string; error?: string }>({});
+
+  const handleSaveAdminCredentials = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAdminCredMsg({});
+
+    if (!adminUsernameInput.trim()) {
+      setAdminCredMsg({ error: 'نام کاربری ادمین نمی‌تواند خالی باشد.' });
+      return;
+    }
+
+    if (!adminNewPass.trim() || adminNewPass.trim().length < 4) {
+      setAdminCredMsg({ error: 'رمز عبور جدید باید حداقل ۴ کاراکتر باشد.' });
+      return;
+    }
+
+    if (adminNewPass !== adminConfirmPass) {
+      setAdminCredMsg({ error: 'رمز عبور جدید با تکرار آن مطابقت ندارد.' });
+      return;
+    }
+
+    try {
+      localStorage.setItem(
+        'ritm_admin_custom_credentials',
+        JSON.stringify({
+          username: adminUsernameInput.trim(),
+          password: adminNewPass.trim(),
+          updatedAt: new Date().toISOString(),
+        })
+      );
+      setAdminCredMsg({
+        success: `مشخصات ادمین با موفقیت تغییر کرد! از این پس با نام کاربری «${adminUsernameInput.trim()}» و رمز عبور جدید می‌توانید وارد شوید.`,
+      });
+      setAdminNewPass('');
+      setAdminConfirmPass('');
+    } catch (e: any) {
+      setAdminCredMsg({ error: 'خطا در ذخیره‌سازی مشخصات.' });
     }
   };
 
@@ -420,55 +470,55 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ lang, onLogout, onNaviga
   const completedCount = orders.filter((o) => o.status === 'completed').length;
 
   return (
-    <div className="max-w-7xl mx-auto py-6 px-4">
+    <div className="max-w-7xl mx-auto py-4 sm:py-6 px-3 sm:px-6 pb-36 sm:pb-16 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <Shield className="w-5 h-5 text-[#d0bcff]" />
-            <h1 className="text-xl font-bold text-[#e5e2e1]">
+            <h1 className="text-lg sm:text-xl font-bold text-[#e5e2e1]">
               {lang === 'fa' ? 'داشبورد مدیریت سفارشات ریتم' : 'RITM Admin Command Center'}
             </h1>
           </div>
-          <p className="text-xs text-[#958ea0] mt-1">
+          <p className="text-[11px] sm:text-xs text-[#958ea0] mt-1">
             {lang === 'fa'
-              ? 'متصل مستقیم به پایگاه داده Supabase و فضای ذخیره‌سازی ابری ریتم'
-              : 'Direct connection to Supabase database & RITM Cloud Storage'}
+              ? 'متصل مستقیم به پایگاه داده Supabase و فضای ابری ریتم'
+              : 'Direct connection to Supabase database & RITM Cloud'}
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between sm:justify-end gap-2 flex-wrap">
           {onLogout && (
             <button
               onClick={onLogout}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs transition-colors cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
-              <span>{lang === 'fa' ? 'خروج از پنل' : 'Logout'}</span>
+              <span>{lang === 'fa' ? 'خروج' : 'Logout'}</span>
             </button>
           )}
 
-          <div className="flex p-1 rounded-xl bg-white/5 border border-white/10 text-xs">
+          <div className="flex items-center gap-1 p-1 rounded-xl bg-white/5 border border-white/10 text-xs overflow-x-auto no-scrollbar max-w-full">
             <button
               onClick={() => setAdminSubTab('orders')}
-              className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
-                adminSubTab === 'orders' ? 'bg-[#d0bcff] text-[#131313] font-bold' : 'text-[#958ea0] hover:text-white'
+              className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
+                adminSubTab === 'orders' ? 'bg-[#d0bcff] text-[#131313] font-bold shadow-sm' : 'text-[#958ea0] hover:text-white'
               }`}
             >
               {lang === 'fa' ? `سفارشات (${totalCount})` : `Orders (${totalCount})`}
             </button>
             <button
               onClick={() => setAdminSubTab('users')}
-              className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
-                adminSubTab === 'users' ? 'bg-[#d0bcff] text-[#131313] font-bold' : 'text-[#958ea0] hover:text-white'
+              className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
+                adminSubTab === 'users' ? 'bg-[#d0bcff] text-[#131313] font-bold shadow-sm' : 'text-[#958ea0] hover:text-white'
               }`}
             >
-              {lang === 'fa' ? `کاربران سایت (${users.length})` : `Users (${users.length})`}
+              {lang === 'fa' ? `کاربران (${users.length})` : `Users (${users.length})`}
             </button>
             <button
               onClick={() => setAdminSubTab('storage')}
-              className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer ${
-                adminSubTab === 'storage' ? 'bg-[#d0bcff] text-[#131313] font-bold' : 'text-[#958ea0] hover:text-white'
+              className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap ${
+                adminSubTab === 'storage' ? 'bg-[#d0bcff] text-[#131313] font-bold shadow-sm' : 'text-[#958ea0] hover:text-white'
               }`}
             >
               <HardDrive className="w-3.5 h-3.5" />
@@ -476,19 +526,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ lang, onLogout, onNaviga
             </button>
             <button
               onClick={() => setAdminSubTab('settings')}
-              className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer ${
-                adminSubTab === 'settings' ? 'bg-[#d0bcff] text-[#131313] font-bold' : 'text-[#958ea0] hover:text-white'
+              className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap ${
+                adminSubTab === 'settings' ? 'bg-[#d0bcff] text-[#131313] font-bold shadow-sm' : 'text-[#958ea0] hover:text-white'
               }`}
             >
               <Settings className="w-3.5 h-3.5" />
-              <span>{lang === 'fa' ? 'تنظیمات سایت' : 'Settings'}</span>
+              <span>{lang === 'fa' ? 'تنظیمات' : 'Settings'}</span>
             </button>
           </div>
 
           <button
             onClick={fetchData}
             disabled={loading}
-            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[#e5e2e1] transition-all"
+            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[#e5e2e1] transition-all cursor-pointer shrink-0"
             title="بروزرسانی داده‌ها"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -672,18 +722,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ lang, onLogout, onNaviga
                               >
                                 مدیریت
                               </button>
-                              {onNavigateToChat && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onNavigateToChat(ord.order_code);
-                                  }}
-                                  className="p-1.5 rounded-lg text-[#a3e635] hover:bg-[#a3e635]/15 transition-colors border border-[#a3e635]/20 cursor-pointer"
-                                  title="گفتگوی آنلاین با کارفرما"
-                                >
-                                  <MessageSquare className="w-3.5 h-3.5" />
-                                </button>
-                              )}
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -944,8 +982,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ lang, onLogout, onNaviga
           {/* Card 2: Telegram Channel ID */}
           <div className="glass-panel rounded-2xl p-6 border border-white/10 space-y-4 text-right">
             <div>
-              <h3 className="text-base font-bold text-white">آدرس و آیدی کانال تلگرام استودیو</h3>
-              <p className="text-xs text-[#8c94a4] mt-0.5">کانالی که دکمه تلگرام در هدر و فوتر به آن لینک می‌شود.</p>
+              <h3 className="text-base font-bold text-white">آدرس و آیدی کانال تلگرام ریتم</h3>
+              <p className="text-xs text-[#8c94a4] mt-0.5">کانالی که دکمه تلگرام به آن لینک می‌شود.</p>
             </div>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
@@ -976,7 +1014,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ lang, onLogout, onNaviga
                 <Megaphone className="w-4 h-4 text-[#ffb869]" />
                 <span>پیام اطلاعیه سراسری برای کاربران سایت</span>
               </h3>
-              <p className="text-xs text-[#8c94a4] mt-0.5">متن اخبار، تخفیف ویژه یا اعلامیه‌های فوری استودیو ریتم.</p>
+              <p className="text-xs text-[#8c94a4] mt-0.5">متن اخبار، تخفیف ویژه یا اعلامیه‌های فوری ریتم.</p>
             </div>
 
             <textarea
@@ -1111,6 +1149,85 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ lang, onLogout, onNaviga
                   className="px-5 py-2.5 rounded-xl bg-[#d0bcff] text-[#0d0f17] font-bold text-xs hover:bg-[#d0bcff]/90 transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {isSavingSmtp ? 'در حال تست اتصال به جیمیل...' : 'تست و فعال‌سازی سرویس ایمیل'}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Card 5: Change Master Admin Username & Password */}
+          <div className="glass-panel rounded-2xl p-6 border border-white/10 space-y-4 text-right">
+            <div>
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-[#a3e635]" />
+                <span>تغییر نام کاربری و رمز عبور حساب ادمین کل (Admin Credentials)</span>
+              </h3>
+              <p className="text-xs text-[#8c94a4] mt-0.5">
+                نام کاربری و رمز عبور ورود به پنل مدیریت را طبق تمایل خود تغییر دهید.
+              </p>
+            </div>
+
+            {adminCredMsg.success && (
+              <div className="p-3.5 rounded-xl bg-[#a3e635]/15 border border-[#a3e635]/30 text-[#a3e635] text-xs flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>{adminCredMsg.success}</span>
+              </div>
+            )}
+
+            {adminCredMsg.error && (
+              <div className="p-3.5 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{adminCredMsg.error}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSaveAdminCredentials} className="space-y-4 pt-1">
+              <div>
+                <label className="text-[11px] text-[#958ea0] block mb-1">نام کاربری جدید ادمین (Username):</label>
+                <input
+                  type="text"
+                  required
+                  value={adminUsernameInput}
+                  onChange={(e) => setAdminUsernameInput(e.target.value)}
+                  placeholder="RITMF"
+                  className="w-full bg-[#161823] border border-white/15 focus:border-[#d0bcff] rounded-xl px-4 py-2.5 text-xs text-white outline-none dir-ltr text-left font-mono"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] text-[#958ea0] block mb-1">رمز عبور جدید (New Password):</label>
+                  <input
+                    type="password"
+                    required
+                    value={adminNewPass}
+                    onChange={(e) => setAdminNewPass(e.target.value)}
+                    placeholder="••••••••••••"
+                    className="w-full bg-[#161823] border border-white/15 focus:border-[#d0bcff] rounded-xl px-4 py-2.5 text-xs text-white outline-none dir-ltr text-left font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] text-[#958ea0] block mb-1">تکرار رمز عبور جدید:</label>
+                  <input
+                    type="password"
+                    required
+                    value={adminConfirmPass}
+                    onChange={(e) => setAdminConfirmPass(e.target.value)}
+                    placeholder="••••••••••••"
+                    className="w-full bg-[#161823] border border-white/15 focus:border-[#d0bcff] rounded-xl px-4 py-2.5 text-xs text-white outline-none dir-ltr text-left font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-2">
+                <span className="text-[11px] text-[#71717a]">
+                  تغییرات بلافاصله ذخیره شده و در لاگین بعدی اعمال می‌شود.
+                </span>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-xl bg-[#a3e635] text-[#07080c] font-bold text-xs hover:bg-[#a3e635]/90 transition-all cursor-pointer shadow-md shadow-[#a3e635]/20"
+                >
+                  ذخیره و تغییر مشخصات ادمین
                 </button>
               </div>
             </form>
@@ -1272,8 +1389,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ lang, onLogout, onNaviga
 
       {/* DELETE USER CONFIRMATION MODAL */}
       {userToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="glass-panel w-full max-w-md rounded-2xl border border-red-500/40 p-6 shadow-2xl space-y-4 text-right">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
+          <div className="glass-panel w-full max-w-md rounded-2xl border border-red-500/40 p-6 shadow-2xl space-y-4 text-right my-auto">
             <div className="w-12 h-12 rounded-xl bg-red-500/20 text-red-400 flex items-center justify-center mx-auto border border-red-500/30">
               <Trash2 className="w-6 h-6" />
             </div>
@@ -1321,8 +1438,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ lang, onLogout, onNaviga
 
       {/* DELETE ORDER CONFIRMATION MODAL */}
       {orderToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="glass-panel w-full max-w-md rounded-2xl border border-red-500/40 p-6 shadow-2xl space-y-4 text-right">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
+          <div className="glass-panel w-full max-w-md rounded-2xl border border-red-500/40 p-6 shadow-2xl space-y-4 text-right my-auto">
             <div className="w-12 h-12 rounded-xl bg-red-500/20 text-red-400 flex items-center justify-center mx-auto border border-red-500/30">
               <Trash2 className="w-6 h-6" />
             </div>
@@ -1357,8 +1474,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ lang, onLogout, onNaviga
 
       {/* ORDER DETAILS MODAL / DRAWER */}
       {selectedOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="glass-panel w-full max-w-2xl rounded-2xl border border-white/20 p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md overflow-y-auto">
+          <div className="glass-panel w-full max-w-2xl rounded-2xl border border-white/20 p-5 sm:p-6 shadow-2xl relative max-h-[92vh] overflow-y-auto my-auto custom-scrollbar">
             {/* Close button */}
             <button
               onClick={() => setSelectedOrder(null)}
@@ -1583,22 +1700,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ lang, onLogout, onNaviga
               </form>
             )}
 
-            {/* Action Bar: Online Chat & Delete Project */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-white/10 mt-6">
-              {onNavigateToChat && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const code = selectedOrder.order_code;
-                    setSelectedOrder(null);
-                    onNavigateToChat(code);
-                  }}
-                  className="px-4 py-2.5 rounded-xl bg-[#a3e635]/15 hover:bg-[#a3e635]/25 text-[#a3e635] border border-[#a3e635]/30 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  <span>گفتگوی آنلاین با این کارفرما</span>
-                </button>
-              )}
+            {/* Action Bar: Delete Project */}
+            <div className="flex flex-wrap items-center justify-end gap-3 pt-4 border-t border-white/10 mt-6">
 
               <button
                 type="button"

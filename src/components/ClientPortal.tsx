@@ -43,7 +43,6 @@ interface ClientPortalProps {
   onLogout: () => void;
   onNavigateToOrder: () => void;
   onNavigateToPortfolio: () => void;
-  onNavigateToChat?: (orderCode?: string) => void;
 }
 
 export const ClientPortal: React.FC<ClientPortalProps> = ({
@@ -53,7 +52,6 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
   onLogout,
   onNavigateToOrder,
   onNavigateToPortfolio,
-  onNavigateToChat,
 }) => {
   // Auth Form State
   const [authMode, setAuthMode] = useState<'login' | 'register' | 'lookup' | 'forgot'>('login');
@@ -456,7 +454,7 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
           </h2>
           <p className="text-xs text-[#958ea0] mb-6 leading-relaxed">
             {lang === 'fa'
-              ? 'جهت مشاهده روند انجام پروژه، پیام‌های استودیو ریتم و سفارشات خود با ایمیل یا کد تایید وارد شوید.'
+              ? 'جهت مشاهده روند انجام پروژه و سفارشات خود با ایمیل یا کد تایید وارد شوید.'
               : 'Sign in with your email and password or instant verification code to track projects.'}
           </p>
 
@@ -1039,7 +1037,7 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
               </span>
             </div>
             <p className="text-xs text-[#958ea0] mt-0.5">
-              {lang === 'fa' ? 'پنل اختصاصی پیگیری پروژه‌ها و ارتباط با استودیو ریتم' : 'Client Project Progress Center'}
+              {lang === 'fa' ? 'پنل اختصاصی پیگیری پروژه‌ها در ریتم' : 'Client Project Progress Center'}
             </p>
           </div>
         </div>
@@ -1221,17 +1219,6 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                         <FileText className="w-3.5 h-3.5" />
                         <span>{lang === 'fa' ? 'فاکتور و قرارداد' : 'Invoice & Contract'}</span>
                       </button>
-
-                      {onNavigateToChat && (
-                        <button
-                          onClick={() => onNavigateToChat(ord.order_code)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#a3e635]/15 hover:bg-[#a3e635]/25 text-[#a3e635] border border-[#a3e635]/30 text-xs font-semibold cursor-pointer transition-colors"
-                          title="گفتگوی مستقیم با پشتیبانی درباره این پروژه"
-                        >
-                          <MessageSquare className="w-3.5 h-3.5" />
-                          <span>{lang === 'fa' ? 'گفتگوی آنلاین' : 'Live Chat'}</span>
-                        </button>
-                      )}
 
                       {ord.status !== 'cancelled' && ord.status !== 'completed' && (
                         <button

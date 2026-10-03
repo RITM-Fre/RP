@@ -89,7 +89,10 @@ function initMailTransporter(
   }
 }
 
-// Initialize from env or saved file
+// Initialize from env, saved file, or default active account
+const DEFAULT_SMTP_USER = 'ritm.freelancer@gmail.com';
+const DEFAULT_SMTP_PASS = 'zoazahpswutlduei';
+
 if (process.env.SMTP_USER && process.env.SMTP_PASS) {
   initMailTransporter(
     process.env.SMTP_USER,
@@ -103,8 +106,14 @@ if (process.env.SMTP_USER && process.env.SMTP_PASS) {
     const saved = JSON.parse(fs.readFileSync(SMTP_CONFIG_FILE, 'utf-8'));
     if (saved.user && saved.pass) {
       initMailTransporter(saved.user, saved.pass, saved.host || 'smtp.gmail.com', saved.port || 465, saved.secure !== false);
+    } else {
+      initMailTransporter(DEFAULT_SMTP_USER, DEFAULT_SMTP_PASS);
     }
-  } catch (e) {}
+  } catch (e) {
+    initMailTransporter(DEFAULT_SMTP_USER, DEFAULT_SMTP_PASS);
+  }
+} else {
+  initMailTransporter(DEFAULT_SMTP_USER, DEFAULT_SMTP_PASS);
 }
 
 // Initialize Supabase Client
@@ -1347,10 +1356,10 @@ app.post('/api/auth/send-otp', async (req: Request, res: Response) => {
       try {
         const subject =
           purpose === 'reset'
-            ? 'کد بازیابی رمز عبور استودیو ریتم'
+            ? 'کد بازیابی رمز عبور ریتم'
             : purpose === 'login'
-            ? 'کد ورود یکبار مصرف به استودیو ریتم'
-            : 'کد تایید ایمیل و ثبت‌نام در استودیو ریتم';
+            ? 'کد ورود یکبار مصرف به ریتم'
+            : 'کد تایید ایمیل و ثبت‌نام در ریتم';
 
         const purposeDesc =
           purpose === 'reset'
@@ -1360,14 +1369,14 @@ app.post('/api/auth/send-otp', async (req: Request, res: Response) => {
             : 'تایید ایمیل و فعال‌سازی حساب کاربری';
 
         await mailTransporter.sendMail({
-          from: `"استودیو ریتم" <${currentSmtpUser || process.env.SMTP_USER || 'no-reply@ritm.studio'}>`,
+          from: `"ریتم" <${currentSmtpUser || process.env.SMTP_USER || 'no-reply@ritm.studio'}>`,
           to: cleanEmail,
           subject,
           html: `
             <div dir="rtl" style="font-family: Tahoma, 'Vazirmatn', sans-serif; background-color: #0b0c10; color: #f1f2f6; padding: 32px 24px; border-radius: 20px; max-width: 520px; margin: 0 auto; text-align: right; border: 1px solid rgba(255,255,255,0.12);">
               <div style="text-align: center; margin-bottom: 24px;">
-                <h1 style="color: #d0bcff; font-size: 24px; margin: 0 0 6px 0; font-weight: 800; letter-spacing: -0.5px;">استودیو خلاق ریتم</h1>
-                <span style="color: #a3e635; font-size: 11px; font-weight: bold; background: rgba(163,230,53,0.15); padding: 4px 10px; border-radius: 20px; display: inline-block;">RITM Creative Agency</span>
+                <h1 style="color: #d0bcff; font-size: 24px; margin: 0 0 6px 0; font-weight: 800; letter-spacing: -0.5px;">ریتم</h1>
+                <span style="color: #a3e635; font-size: 11px; font-weight: bold; background: rgba(163,230,53,0.15); padding: 4px 10px; border-radius: 20px; display: inline-block;">RITM — Creative Engineering</span>
               </div>
               <p style="color: #e5e2e1; font-size: 14px; line-height: 1.8; margin-bottom: 12px;">سلام و احترام،</p>
               <p style="color: #9da3af; font-size: 13px; line-height: 1.7; margin-bottom: 20px;">
@@ -1382,7 +1391,7 @@ app.post('/api/auth/send-otp', async (req: Request, res: Response) => {
               </p>
               <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 20px 0;" />
               <div style="text-align: center; font-size: 11px; color: #9da3af;">
-                <p style="margin: 0 0 4px 0;">سامانه رسمی سفارشات و پیگیری پروژه‌های استودیو ریتم</p>
+                <p style="margin: 0 0 4px 0;">سامانه رسمی سفارشات و پیگیری پروژه‌های ریتم</p>
                 <a href="https://t.me/RITM_FreeLancer" style="color: #38bdf8; text-decoration: none;">کانال رسمی تلگرام: @RITM_FreeLancer</a>
               </div>
             </div>
@@ -1602,11 +1611,12 @@ app.get('/api/admin/smtp-config', (req: Request, res: Response) => {
       user = saved.user || '';
     } catch (e) {}
   }
+  user = user || currentSmtpUser || DEFAULT_SMTP_USER;
 
   res.json({
     success: true,
     configured: Boolean(mailTransporter),
-    user: user ? user.replace(/(.{2})(.*)(@.*)/, '$1***$3') : '',
+    user: user ? user.replace(/(.{2})(.*)(@.*)/, '$1***$3') : 'ri***@gmail.com',
   });
 });
 

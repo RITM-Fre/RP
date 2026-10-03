@@ -1,115 +1,116 @@
 @import "tailwindcss";
-
-/* IRANSans Persian Font Definition & Fallback */
-@font-face {
-  font-family: 'IRANSans';
-  font-style: normal;
-  font-weight: 300;
-  src: local('IRANSans Light'), local('IRANSans-Light'),
-       url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Light.woff2') format('woff2');
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'IRANSans';
-  font-style: normal;
-  font-weight: 400;
-  src: local('IRANSans'), local('IRANSans-Regular'),
-       url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Regular.woff2') format('woff2');
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'IRANSans';
-  font-style: normal;
-  font-weight: 500;
-  src: local('IRANSans Medium'), local('IRANSans-Medium'),
-       url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Medium.woff2') format('woff2');
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'IRANSans';
-  font-style: normal;
-  font-weight: 700;
-  src: local('IRANSans Bold'), local('IRANSans-Bold'),
-       url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Bold.woff2') format('woff2');
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'IRANSans';
-  font-style: normal;
-  font-weight: 800;
-  src: local('IRANSans Black'), local('IRANSans-Black'),
-       url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-ExtraBold.woff2') format('woff2');
-  font-display: swap;
-}
+@import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css');
 
 @layer base {
-  html, body, button, input, textarea, select {
-    font-family: 'IRANSans', 'IRANSansX', 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  :root {
+    --font-persian: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, Tahoma, sans-serif;
+    --font-code: 'Plus Jakarta Sans', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    --accent-purple: #d0bcff;
+    --accent-cyan: #38bdf8;
+    --accent-lime: #a3e635;
+    --bg-dark: #07080c;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-persian);
   }
 
   body {
-    background-color: #08090d;
+    background-color: var(--bg-dark);
     color: #e5e2e1;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    font-family: var(--font-persian);
+    background-image: 
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(208, 188, 255, 0.08), transparent),
+      radial-gradient(ellipse 60% 40% at 90% 80%, rgba(56, 189, 248, 0.04), transparent);
+    background-attachment: fixed;
+  }
+
+  button, input, textarea, select {
+    font-family: inherit;
   }
 
   code, pre, .font-mono {
-    font-family: 'JetBrains Mono', monospace !important;
+    font-family: var(--font-code) !important;
   }
 }
 
-/* Crisp, fast glass cards with smooth hardware acceleration */
+/* ========================================================================= */
+/* ULTRA-CLEAN GLASSMORPHISM DESIGN TOKENS (Optimized Hardware Acceleration) */
+/* ========================================================================= */
+
 .glass-panel {
-  background-color: #0e1017;
+  background-color: rgba(14, 16, 24, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transition: border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-card {
-  background-color: #12141c;
+  background-color: rgba(18, 20, 30, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.07);
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-              background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.3);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-card:hover {
-  background-color: #181a26;
+  background-color: rgba(24, 27, 40, 0.92);
   border-color: rgba(208, 188, 255, 0.35);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.7);
+  transform: translateY(-3px);
+  box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.65), 0 0 20px -2px rgba(208, 188, 255, 0.12);
+}
+
+.glass-btn {
+  background-color: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(208, 188, 255, 0.4);
+  transform: translateY(-1px);
 }
 
 /* Micro-interaction Hover Lift */
 .hover-lift {
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 .hover-lift:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px -6px rgba(208, 188, 255, 0.25);
+  box-shadow: 0 10px 28px -6px rgba(208, 188, 255, 0.25);
 }
 
 /* Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -117,41 +118,46 @@
   }
 }
 
-@keyframes floatGentle {
+@keyframes pulseGlow {
   0%, 100% {
-    transform: translateY(0);
+    opacity: 1;
+    filter: drop-shadow(0 0 6px rgba(163, 230, 53, 0.4));
   }
   50% {
-    transform: translateY(-4px);
+    opacity: 0.8;
+    filter: drop-shadow(0 0 14px rgba(163, 230, 53, 0.8));
   }
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-slide-up {
-  animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.animate-float {
-  animation: floatGentle 4s ease-in-out infinite;
+.animate-pulse-glow {
+  animation: pulseGlow 2.5s ease-in-out infinite;
 }
 
-/* Fast modern scrollbar */
+/* Custom Sleek Scrollbar */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
+
 ::-webkit-scrollbar-track {
-  background: #08090d;
+  background: rgba(7, 8, 12, 0.8);
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #202436;
-  border-radius: 4px;
+  background: rgba(208, 188, 255, 0.22);
+  border-radius: 9999px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: #373d59;
+  background: rgba(208, 188, 255, 0.45);
 }
 
 .no-scrollbar::-webkit-scrollbar {

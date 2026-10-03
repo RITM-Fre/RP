@@ -4,20 +4,17 @@ import {
   ShoppingBag,
   FolderKanban,
   Clock,
-  Send,
   Globe,
   Shield,
   Terminal,
   LogOut,
   User,
-  Lock,
-  MessageSquare,
 } from 'lucide-react';
 import { AuthUser } from '../types';
 
 interface NavbarProps {
-  activeTab: 'home' | 'order' | 'admin' | 'portfolio' | 'status' | 'client' | 'chat';
-  setActiveTab: (tab: 'home' | 'order' | 'admin' | 'portfolio' | 'status' | 'client' | 'chat') => void;
+  activeTab: 'home' | 'order' | 'admin' | 'portfolio' | 'status' | 'client';
+  setActiveTab: (tab: 'home' | 'order' | 'admin' | 'portfolio' | 'status' | 'client') => void;
   lang: 'fa' | 'en';
   setLang: (lang: 'fa' | 'en') => void;
   pendingCount?: number;
@@ -36,7 +33,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   currentUser = null,
   isAdminLoggedIn = false,
   onAdminLogout,
-  onOpenAdminLogin,
+  onOpenAdminLogin: _onOpenAdminLogin,
 }) => {
   const [scrolled, setScrolled] = useState(false);
 
@@ -80,10 +77,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           onClick={() => setActiveTab('home')}
           className={`flex items-center gap-2 rounded-full cursor-pointer select-none transition-all duration-300 group border shrink-0 ${
             scrolled
-              ? 'py-1 px-3 sm:py-1.5 sm:px-3.5 bg-[#07080c]/95 backdrop-blur-2xl border-[#d0bcff]/25 shadow-[0_8px_30px_rgba(0,0,0,0.85)]'
-              : 'py-1.5 px-3.5 sm:py-2 sm:px-4 bg-[#0d0f16]/90 backdrop-blur-xl border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.4)]'
+              ? 'py-1 px-3 sm:py-1.5 sm:px-4 bg-[#07080c]/95 backdrop-blur-2xl border-[#d0bcff]/25 shadow-[0_8px_30px_rgba(0,0,0,0.85)]'
+              : 'py-1.5 px-3.5 sm:py-2 sm:px-4.5 bg-[#0d0f16]/90 backdrop-blur-xl border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.4)]'
           } hover:border-[#d0bcff]/50 hover:shadow-[0_0_20px_rgba(208,188,255,0.25)] active:scale-95`}
-          title={lang === 'fa' ? 'استودیو خلاقیت دیجیتال ریتم' : 'RITM Digital Studio'}
+          title={lang === 'fa' ? 'ریتم' : 'RITM'}
         >
           {/* Logo circular icon */}
           <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full overflow-hidden bg-black/80 border border-white/20 p-0.5 flex items-center justify-center shrink-0 group-hover:border-[#d0bcff] transition-all">
@@ -94,10 +91,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             />
           </div>
 
-          {/* Clean Wordmark */}
+          {/* Clean Wordmark: strictly "ریتم" / "RITM" */}
           <div className="flex items-center gap-1.5">
             <span className="text-xs sm:text-[13px] font-black tracking-tight text-white group-hover:text-[#d0bcff] transition-colors whitespace-nowrap">
-              {lang === 'fa' ? 'استودیو ریتم' : 'RITM Studio'}
+              {lang === 'fa' ? 'ریتم' : 'RITM'}
             </span>
             <span className="w-1.5 h-1.5 rounded-full bg-[#a3e635] shadow-[0_0_8px_#a3e635] animate-pulse shrink-0" />
           </div>
@@ -165,21 +162,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span>{lang === 'fa' ? 'پیگیری سفارش' : 'Track'}</span>
           </button>
 
-          {/* Chat */}
-          <button
-            onClick={() => setActiveTab('chat')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs transition-all duration-200 cursor-pointer ${
-              activeTab === 'chat'
-                ? 'bg-[#a3e635]/20 text-[#a3e635] font-bold border border-[#a3e635]/35 shadow-[0_0_12px_rgba(163,230,53,0.25)]'
-                : 'text-[#9da3af] hover:text-[#a3e635] hover:bg-white/[0.05]'
-            }`}
-          >
-            <MessageSquare className="w-3.5 h-3.5 text-[#a3e635]" strokeWidth={1.75} />
-            <span>{lang === 'fa' ? 'گفتگو' : 'Chat'}</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#a3e635] animate-pulse" />
-          </button>
-
-          {/* Admin Tabs */}
+          {/* Desktop Admin Tabs (Only if logged in) */}
           {isAdminLoggedIn && (
             <>
               <div className="h-3 w-[1px] bg-white/15 mx-0.5" />
@@ -216,7 +199,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </nav>
 
         {/* ========================================================= */}
-        {/* ISLAND 3: ACTIONS & AUTH (Smooth Semi-Circular Pill)       */}
+        {/* ISLAND 3: ACTIONS & AUTH (Clean Semi-Circular Pill)        */}
         {/* ========================================================= */}
         <div
           className={`flex items-center gap-1 sm:gap-1.5 rounded-full transition-all duration-300 border shrink-0 ${
@@ -233,35 +216,27 @@ export const Navbar: React.FC<NavbarProps> = ({
               title="ورود به پنل کاربری"
             >
               <User className="w-3.5 h-3.5 text-[#d0bcff]" />
-              <span className="max-w-[65px] sm:max-w-[90px] truncate">{currentUser.first_name || currentUser.username}</span>
+              <span className="max-w-[70px] sm:max-w-[95px] truncate">{currentUser.first_name || currentUser.username}</span>
             </button>
           ) : (
             <button
               onClick={() => setActiveTab('client')}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-xs text-white font-medium hover:text-[#d0bcff] transition-all cursor-pointer whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-xs text-white font-medium hover:text-[#d0bcff] transition-all cursor-pointer whitespace-nowrap"
             >
-              <User className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">{lang === 'fa' ? 'ورود مشتری' : 'Login'}</span>
+              <User className="w-3.5 h-3.5 text-[#d0bcff]" />
+              <span>{lang === 'fa' ? 'ورود کاربر' : 'Login'}</span>
             </button>
           )}
 
-          {/* Admin Lock / Logout */}
-          {isAdminLoggedIn ? (
+          {/* Admin Logout (Desktop only, if admin is logged in) */}
+          {isAdminLoggedIn && onAdminLogout && (
             <button
               onClick={onAdminLogout}
-              className="p-1.5 px-3 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs flex items-center gap-1 transition-colors cursor-pointer"
+              className="hidden sm:inline-flex p-1.5 px-3 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs items-center gap-1 transition-colors cursor-pointer"
               title="خروج از پنل ادمین"
             >
               <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden xl:inline">{lang === 'fa' ? 'خروج' : 'Logout'}</span>
-            </button>
-          ) : (
-            <button
-              onClick={onOpenAdminLogin}
-              className="p-1.5 sm:p-2 rounded-full text-[#9da3af] hover:text-[#ffb869] hover:bg-white/[0.05] transition-colors cursor-pointer"
-              title={lang === 'fa' ? 'ورود ادمین' : 'Admin Login'}
-            >
-              <Lock className="w-3.5 h-3.5 text-[#ffb869]" />
+              <span>{lang === 'fa' ? 'خروج' : 'Logout'}</span>
             </button>
           )}
 
@@ -274,28 +249,16 @@ export const Navbar: React.FC<NavbarProps> = ({
             <Globe className="w-3 h-3" />
             <span>{lang === 'fa' ? 'EN' : 'فا'}</span>
           </button>
-
-          {/* Telegram Channel Button */}
-          <a
-            href="https://t.me/RITM_FreeLancer"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#229ed9] to-[#0088cc] hover:from-[#27a8e6] hover:to-[#0094de] border border-[#38bdf8]/40 text-white text-xs font-bold shadow-[0_2px_12px_rgba(34,158,217,0.3)] transition-all cursor-pointer whitespace-nowrap active:scale-95"
-            title="کانال رسمی تلگرام: @RITM_FreeLancer"
-          >
-            <Send className="w-3 h-3" />
-            <span className="hidden lg:inline">{lang === 'fa' ? 'تلگرام' : 'TG'}</span>
-          </a>
         </div>
       </div>
 
       {/* ========================================================= */}
-      {/* MOBILE COMPACT FLOATING DOCK (Ergonomic Thumb Navigation) */}
+      {/* MOBILE COMPACT FLOATING DOCK (Clean 4 Tabs - No Chat)     */}
       {/* ========================================================= */}
-      <div className="md:hidden fixed bottom-3 inset-x-3 max-w-sm mx-auto z-[100] rounded-full bg-[#08090e]/95 backdrop-blur-2xl border border-white/20 shadow-[0_12px_36px_rgba(0,0,0,0.9)] p-1.5 flex items-center justify-around text-xs pointer-events-auto">
+      <div className="md:hidden fixed bottom-3 inset-x-4 max-w-xs mx-auto z-[100] rounded-full bg-[#08090e]/95 backdrop-blur-2xl border border-white/20 shadow-[0_12px_36px_rgba(0,0,0,0.9)] p-1.5 flex items-center justify-around text-xs pointer-events-auto">
         <button
           onClick={() => setActiveTab('home')}
-          className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-full transition-all cursor-pointer ${
+          className={`flex flex-col items-center gap-0.5 px-3.5 py-1 rounded-full transition-all cursor-pointer ${
             activeTab === 'home' ? 'bg-white/15 text-white font-bold' : 'text-[#9da3af] hover:text-white'
           }`}
         >
@@ -305,7 +268,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         <button
           onClick={() => setActiveTab('order')}
-          className={`flex flex-col items-center gap-0.5 px-3.5 py-1 rounded-full transition-all cursor-pointer ${
+          className={`flex flex-col items-center gap-0.5 px-4 py-1 rounded-full transition-all cursor-pointer ${
             activeTab === 'order'
               ? 'bg-[#d0bcff] text-[#0b0c10] font-bold shadow-[0_0_12px_rgba(208,188,255,0.45)]'
               : 'text-[#d0bcff]'
@@ -317,7 +280,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         <button
           onClick={() => setActiveTab('portfolio')}
-          className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-full transition-all cursor-pointer ${
+          className={`flex flex-col items-center gap-0.5 px-3.5 py-1 rounded-full transition-all cursor-pointer ${
             activeTab === 'portfolio' ? 'bg-white/15 text-white font-bold' : 'text-[#9da3af] hover:text-white'
           }`}
         >
@@ -327,24 +290,12 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         <button
           onClick={() => setActiveTab('client')}
-          className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-full transition-all cursor-pointer ${
+          className={`flex flex-col items-center gap-0.5 px-3.5 py-1 rounded-full transition-all cursor-pointer ${
             activeTab === 'client' ? 'bg-white/15 text-white font-bold' : 'text-[#9da3af] hover:text-white'
           }`}
         >
           <Clock className="w-4 h-4 text-[#adc6ff]" />
           <span className="text-[9px]">{lang === 'fa' ? 'پیگیری' : 'Track'}</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('chat')}
-          className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-full transition-all cursor-pointer ${
-            activeTab === 'chat'
-              ? 'bg-[#a3e635]/20 text-[#a3e635] font-bold border border-[#a3e635]/30 shadow-[0_0_10px_rgba(163,230,53,0.2)]'
-              : 'text-[#9da3af] hover:text-white'
-          }`}
-        >
-          <MessageSquare className="w-4 h-4 text-[#a3e635]" />
-          <span className="text-[9px]">{lang === 'fa' ? 'گفتگو' : 'Chat'}</span>
         </button>
       </div>
     </header>

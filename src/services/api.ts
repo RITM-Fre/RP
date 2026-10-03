@@ -746,30 +746,59 @@ export async function getClientOrders(
   }
 }
 
-// 8. Admin Login (Supports Master Password OR Any Admin User's Email + Password)
+// 8. Admin Login (Supports RITMF / Mohmah123 OR Custom Changed Credentials OR Any Admin User)
 export async function adminLogin(
   passwordOrCredentials: string | { email?: string; password: string }
 ): Promise<{ success: boolean; token?: string; user?: any; error?: string }> {
   const password = typeof passwordOrCredentials === 'string' ? passwordOrCredentials.trim() : passwordOrCredentials.password.trim();
-  const email = typeof passwordOrCredentials === 'object' ? (passwordOrCredentials.email || '').trim().toLowerCase() : '';
+  const usernameOrEmail = typeof passwordOrCredentials === 'object' ? (passwordOrCredentials.email || '').trim().toLowerCase() : '';
 
-  // Check 1: Master Admin Password
+  // Check custom admin credentials saved by admin
+  try {
+    const custom = JSON.parse(localStorage.getItem('ritm_admin_custom_credentials') || '{}');
+    if (custom.username && custom.password) {
+      if (
+        (!usernameOrEmail || usernameOrEmail === custom.username.toLowerCase()) &&
+        password === custom.password
+      ) {
+        return {
+          success: true,
+          token: 'ritm_admin_token_custom',
+          user: { id: 1, username: custom.username, first_name: 'مدیر کل ریتم', is_admin: true },
+        };
+      }
+    }
+  } catch (e) {}
+
+  // Check Default requested credentials: Username = RITMF, Password = Mohmah123
+  if (
+    (!usernameOrEmail || usernameOrEmail === 'ritmf' || usernameOrEmail === 'admin' || usernameOrEmail === 'admin@ritm.studio') &&
+    (password === 'Mohmah123' || password === 'mohmah123')
+  ) {
+    return {
+      success: true,
+      token: 'ritm_admin_token_master',
+      user: { id: 1, username: 'RITMF', first_name: 'مدیر ریتم', is_admin: true },
+    };
+  }
+
+  // Check Master Admin Password directly
   if (password === 'Mohmah123' || password === 'mohmah123') {
     return {
       success: true,
       token: 'ritm_admin_token_master',
-      user: { id: 1, username: 'admin@ritm.studio', first_name: 'مدیر کل', is_admin: true },
+      user: { id: 1, username: 'RITMF', first_name: 'مدیر کل', is_admin: true },
     };
   }
 
-  // Check 2: If email is provided, check that specific admin in Supabase
-  if (email) {
+  // Check in Supabase if email is provided
+  if (usernameOrEmail) {
     try {
       const { data: adminUser, error } = await supabase
         .from('users')
         .select('*')
         .eq('is_admin', true)
-        .ilike('username', email)
+        .ilike('username', usernameOrEmail)
         .eq('password', password)
         .maybeSingle();
 
@@ -997,194 +1026,5 @@ export async function getSystemStatus(): Promise<any> {
         storageMaxMB: 1024,
       },
     };
-  }
-}
-
-// 11. Online Project Discussion & Chat API (With 100% Reliable Client & Supabase Fallback)
-const LOCAL_CHAT_KEY = 'ritm_live_chat_messages';
-
-function getLocalMessages(): any[] {
-  try {
-    const raw = localStorage.getItem(LOCAL_CHAT_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch (e) {}
-  return [
-    {
-      id: 'welcome-init',
-      orderCode: 'RITM-GENERAL',
-      clientName: 'استودیو ریتم',
-      senderRole: 'admin',
-      text: 'سلام و احترام! به سامانه گفتگوی اختصاصی استودیو ریتم خوش آمدید. هماهنگی‌ها، اصلاحات و مراحل اجرای پروژه شما در این بخش به صورت زنده پاسخ داده می‌شود.',
-      createdAt: new Date().toISOString(),
-      read: true,
-    },
-  ];
-}
-
-function saveLocalMessages(msgs: any[]) {
-  try {
-    localStorage.setItem(LOCAL_CHAT_KEY, JSON.stringify(msgs));
-  } catch (e) {}
-}
-
-export async function getChatMessages(
-  orderCode?: string,
-  userId?: number,
-  all?: boolean
-): Promise<{ success: boolean; messages: any[]; error?: string }> {
-  // Attempt 1: Call backend API if not on a purely static host
-  if (!isStaticEnvironment()) {
-    try {
-      const params = new URLSearchParams();
-      if (orderCode) params.set('orderCode', orderCode);
-      if (userId) params.set('userId', userId.toString());
-      if (all) params.set('all', 'true');
-
-      const res = await fetch(`/api/chat/messages?${params.toString()}`);
-      const parsed = await safeParseJson<{ success: boolean; messages: any[] }>(res);
-      if (parsed.ok && parsed.data?.success && Array.isArray(parsed.data.messages)) {
-        // Cache to local
-        saveLocalMessages(parsed.data.messages);
-        return { success: true, messages: parsed.data.messages };
-      }
-    } catch (e) {}
-  }
-
-  // Attempt 2: Local Storage & Filter (Works on GitHub Pages & Offline)
-  const localList = getLocalMessages();
-  if (all) {
-    return { success: true, messages: localList };
-  }
-
-  const filtered = localList.filter((m) => {
-    if (!orderCode || orderCode === 'RITM-GENERAL') {
-      return m.orderCode === 'RITM-GENERAL' || !m.orderCode;
-    }
-    return m.orderCode === orderCode;
-  });
-
-  return { success: true, messages: filtered };
-}
-
-export async function sendChatMessage(data: {
-  orderCode?: string;
-  userId?: number | null;
-  clientName?: string;
-  senderRole: 'client' | 'admin';
-  text: string;
-  replyTo?: { id: string; clientName: string; text: string; senderRole: 'client' | 'admin' } | null;
-}): Promise<{ success: boolean; message?: any; error?: string }> {
-  const newMsg = {
-    id: `chat-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-    orderCode: data.orderCode?.trim() || 'RITM-GENERAL',
-    userId: data.userId || null,
-    clientName: (data.clientName || (data.senderRole === 'admin' ? 'مدیریت ریتم' : 'کاربر')).trim(),
-    senderRole: data.senderRole,
-    text: data.text.trim(),
-    createdAt: new Date().toISOString(),
-    read: data.senderRole === 'admin',
-    replyTo: data.replyTo || null,
-  };
-
-  // Always save to LocalStorage immediately
-  const localList = getLocalMessages();
-  localList.push(newMsg);
-  saveLocalMessages(localList);
-
-  // Send to backend if available
-  if (!isStaticEnvironment()) {
-    fetch('/api/chat/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    }).catch(() => {});
-  }
-
-  // Also push to Supabase messages for cloud persistence
-  try {
-    const replyNote = newMsg.replyTo ? ` [در پاسخ به ${newMsg.replyTo.clientName}]` : '';
-    supabase.from('messages').insert({
-      text: `[${newMsg.orderCode}] ${newMsg.clientName}${replyNote}: ${newMsg.text}`,
-      from_admin: newMsg.senderRole === 'admin',
-      created_at: newMsg.createdAt,
-    }).then(() => {});
-  } catch (e) {}
-
-  // Notify telegram admins
-  const replyLine = newMsg.replyTo ? `\n↩️ <b>در پاسخ به:</b> ${newMsg.replyTo.clientName}: "${newMsg.replyTo.text.slice(0, 60)}..."` : '';
-  notifyTelegramAdmins(
-    `💬 <b>پیام چت جدید در استودیو ریتم:</b>\n\n` +
-    `🔖 <b>پروژه:</b> ${newMsg.orderCode}\n` +
-    `👤 <b>فرستنده:</b> ${newMsg.clientName} (${newMsg.senderRole})${replyLine}\n` +
-    `📝 <b>متن:</b> ${newMsg.text}`
-  );
-
-  return { success: true, message: newMsg };
-}
-
-export async function getChatConversations(): Promise<{
-  success: boolean;
-  conversations: any[];
-  error?: string;
-}> {
-  if (!isStaticEnvironment()) {
-    try {
-      const res = await fetch('/api/chat/conversations');
-      const parsed = await safeParseJson<any>(res);
-      if (parsed.ok && parsed.data?.success && Array.isArray(parsed.data.conversations)) {
-        return { success: true, conversations: parsed.data.conversations };
-      }
-    } catch (e) {}
-  }
-
-  // Build from local messages
-  const localList = getLocalMessages();
-  const groups: Record<string, any[]> = {};
-  for (const msg of localList) {
-    const key = msg.orderCode || 'RITM-GENERAL';
-    if (!groups[key]) groups[key] = [];
-    groups[key].push(msg);
-  }
-
-  const convs = Object.entries(groups).map(([code, msgs]) => {
-    const last = msgs[msgs.length - 1];
-    return {
-      orderCode: code,
-      clientName: last.clientName || 'گفتگوی استودیو',
-      userId: last.userId,
-      lastMessage: last.text,
-      lastMessageTime: last.createdAt,
-      unreadCount: msgs.filter((m) => m.senderRole === 'client' && !m.read).length,
-    };
-  });
-
-  convs.sort((a, b) => new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime());
-  return { success: true, conversations: convs };
-}
-
-export async function markChatRead(
-  orderCode?: string,
-  readerRole: 'admin' | 'client' = 'admin'
-): Promise<{ success: boolean }> {
-  try {
-    const localList = getLocalMessages();
-    localList.forEach((m) => {
-      if (!orderCode || m.orderCode === orderCode) {
-        if (readerRole === 'admin' && m.senderRole === 'client') m.read = true;
-        if (readerRole === 'client' && m.senderRole === 'admin') m.read = true;
-      }
-    });
-    saveLocalMessages(localList);
-
-    if (!isStaticEnvironment()) {
-      fetch('/api/chat/mark-read', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderCode, readerRole }),
-      }).catch(() => {});
-    }
-    return { success: true };
-  } catch {
-    return { success: false };
   }
 }
