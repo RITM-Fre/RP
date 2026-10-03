@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Lock } from 'lucide-react';
+import { Shield, Lock, Download } from 'lucide-react';
 import { SOCIAL_LINKS } from '../data/mockData';
 
 interface FooterProps {
@@ -7,6 +7,7 @@ interface FooterProps {
   isAdminLoggedIn?: boolean;
   onOpenAdminLogin?: () => void;
   onNavigateToAdmin?: () => void;
+  onOpenInstallModal?: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
@@ -14,6 +15,7 @@ export const Footer: React.FC<FooterProps> = ({
   isAdminLoggedIn = false,
   onOpenAdminLogin,
   onNavigateToAdmin,
+  onOpenInstallModal,
 }) => {
   const handleAdminClick = () => {
     if (isAdminLoggedIn && onNavigateToAdmin) {
@@ -82,8 +84,20 @@ export const Footer: React.FC<FooterProps> = ({
           </a>
         </div>
 
-        {/* Simple & Clean Admin Access Button + Copyright */}
-        <div className="flex flex-col sm:flex-row items-center gap-3.5 w-full sm:w-auto">
+        {/* Simple & Clean Admin Access Button + Install App + Copyright */}
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          {onOpenInstallModal && (
+            <button
+              onClick={onOpenInstallModal}
+              type="button"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full bg-[#d0bcff]/10 hover:bg-[#d0bcff]/20 text-[#d0bcff] hover:text-white border border-[#d0bcff]/25 transition-all text-xs font-semibold cursor-pointer shadow-sm active:scale-95"
+              title="نصب اپلیکیشن ریتم روی گوشی"
+            >
+              <Download className="w-3.5 h-3.5 fill-current" />
+              <span>{lang === 'fa' ? 'نصب اپلیکیشن ریتم' : 'Install App'}</span>
+            </button>
+          )}
+
           <button
             onClick={handleAdminClick}
             type="button"

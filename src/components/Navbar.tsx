@@ -9,6 +9,8 @@ import {
   Terminal,
   LogOut,
   User,
+  Download,
+  Smartphone,
 } from 'lucide-react';
 import { AuthUser } from '../types';
 
@@ -22,6 +24,7 @@ interface NavbarProps {
   isAdminLoggedIn?: boolean;
   onAdminLogout?: () => void;
   onOpenAdminLogin: () => void;
+  onOpenInstallModal?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -34,6 +37,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   isAdminLoggedIn = false,
   onAdminLogout,
   onOpenAdminLogin: _onOpenAdminLogin,
+  onOpenInstallModal,
 }) => {
   const [scrolled, setScrolled] = useState(false);
 
@@ -237,6 +241,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>{lang === 'fa' ? 'خروج' : 'Logout'}</span>
+            </button>
+          )}
+
+          {/* PWA Install Button (Mobile & Desktop) */}
+          {onOpenInstallModal && (
+            <button
+              onClick={onOpenInstallModal}
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-[#d0bcff]/15 hover:bg-[#d0bcff]/25 border border-[#d0bcff]/30 text-xs font-bold text-[#d0bcff] hover:text-white transition-all cursor-pointer shadow-sm hover:shadow-[0_0_12px_rgba(208,188,255,0.3)] active:scale-95"
+              title={lang === 'fa' ? 'نصب اپلیکیشن ریتم روی گوشی' : 'Install RITM App'}
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span className="hidden xs:inline">{lang === 'fa' ? 'نصب ریتم' : 'Install'}</span>
             </button>
           )}
 

@@ -11,10 +11,15 @@ import {
   Clock,
   ShieldCheck,
   Zap,
+  Download,
+  CheckCircle2,
+  Share2,
 } from 'lucide-react';
 import { ProjectType } from '../types';
 import { heroImage, videoImage, webImage, mobileImage } from '../data/mockData';
 import { SocialSection } from './SocialSection';
+import { TestimonialsSection } from './TestimonialsSection';
+import { FaqSection } from './FaqSection';
 
 interface HomeViewProps {
   lang: 'fa' | 'en';
@@ -22,6 +27,7 @@ interface HomeViewProps {
   onStartOrder: (category?: ProjectType) => void;
   onNavigateToPortfolio: () => void;
   onNavigateToClient: () => void;
+  onOpenInstallModal?: () => void;
 }
 
 export const HomeView: React.FC<HomeViewProps> = ({
@@ -30,6 +36,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onStartOrder,
   onNavigateToPortfolio,
   onNavigateToClient,
+  onOpenInstallModal,
 }) => {
   return (
     <div className="w-full space-y-16 pb-16 animate-fade-in">
@@ -83,6 +90,18 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <Film className="w-4 h-4 text-[#adc6ff]" />
             <span>{lang === 'fa' ? 'مشاهده نمونه‌کارها' : 'View Portfolio'}</span>
           </button>
+
+          {/* Quick PWA Install Action */}
+          {onOpenInstallModal && (
+            <button
+              onClick={onOpenInstallModal}
+              className="px-5 py-3.5 rounded-xl bg-[#38bdf8]/10 hover:bg-[#38bdf8]/20 border border-[#38bdf8]/30 text-[#38bdf8] hover:text-white font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center gap-2 hover-lift active:scale-95"
+              title="نصب اپلیکیشن ریتم روی گوشی"
+            >
+              <Download className="w-4 h-4" />
+              <span>{lang === 'fa' ? 'نصب اپلیکیشن ریتم' : 'Install App'}</span>
+            </button>
+          )}
         </div>
 
         {/* Live Metrics */}
@@ -240,10 +259,72 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
       </section>
 
-      {/* 4. SOCIAL MEDIA CHANNELS */}
+      {/* 4. TESTIMONIALS & CLIENT SATISFACTION (جدید: بخش شیک رضایت کارفرمایان) */}
+      <TestimonialsSection lang={lang} isAdminLoggedIn={isAdminLoggedIn} />
+
+      {/* 5. FAQ (جدید: سوالات متداول با آکاردئون جمع‌وجور و سرچ هوشمند) */}
+      <FaqSection lang={lang} />
+
+      {/* 6. PWA / MOBILE APP PROMOTION CARD (قابلیت نصب اپلیکیشن روی گوشی) */}
+      {onOpenInstallModal && (
+        <section className="max-w-4xl mx-auto px-4">
+          <div className="relative overflow-hidden rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-[#11131c] via-[#161324] to-[#11131c] border border-[#d0bcff]/30 shadow-2xl shadow-black/80 flex flex-col sm:flex-row items-center justify-between gap-6 text-right">
+            {/* Background Glows */}
+            <div className="absolute -left-12 -bottom-12 w-44 h-44 bg-[#d0bcff]/20 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -right-12 -top-12 w-44 h-44 bg-[#38bdf8]/20 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="flex items-center gap-4 z-10">
+              <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-[#d0bcff] to-[#7c3aed] p-1 shadow-xl shadow-[#d0bcff]/25 shrink-0 flex items-center justify-center">
+                <img
+                  src="/assets/logo.png"
+                  alt="RITM App Icon"
+                  className="w-full h-full object-contain rounded-xl"
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = 'none';
+                  }}
+                />
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded-full bg-[#d0bcff]/20 text-[#d0bcff] text-[10px] font-bold">
+                    PWA App
+                  </span>
+                  <span className="text-[11px] text-[#a3e635] font-semibold flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    بدون نیاز به نصب از بازار
+                  </span>
+                </div>
+
+                <h3 className="text-lg sm:text-xl font-black text-white">
+                  {lang === 'fa' ? 'اپلیکیشن ریتم را روی گوشی نصب کنید' : 'Install RITM App on Your Phone'}
+                </h3>
+
+                <p className="text-xs text-[#8c94a4] leading-relaxed max-w-md">
+                  {lang === 'fa'
+                    ? 'دسترسی سریع و آسان با یک لمس، پیگیری آنلاین وضعیت پروژه‌ها، بدون اشغال حافظه و کاملاً بهینه‌شده برای آیفون و اندروید.'
+                    : 'Instant access right from your home screen, offline caching, and fast project tracking.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="z-10 w-full sm:w-auto shrink-0 flex flex-col sm:flex-row items-center gap-2.5">
+              <button
+                onClick={onOpenInstallModal}
+                className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#d0bcff] to-[#b69df8] hover:from-[#d0bcff]/90 hover:to-[#b69df8]/90 text-[#0d0f17] font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xl shadow-[#d0bcff]/25 transition-all cursor-pointer hover:scale-105 active:scale-95"
+              >
+                <Download className="w-4 h-4 fill-current" />
+                <span>{lang === 'fa' ? 'نصب ریتم روی گوشی' : 'Install RITM App'}</span>
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 7. SOCIAL MEDIA CHANNELS */}
       <SocialSection lang={lang} isAdminLoggedIn={isAdminLoggedIn} />
 
-      {/* 5. TRACKING & DIRECT TELEGRAM CTA */}
+      {/* 8. TRACKING & DIRECT TELEGRAM CTA */}
       <section className="max-w-4xl mx-auto px-4">
         <div className="rounded-2xl p-6 sm:p-8 border border-white/10 bg-[#10121a] flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="space-y-1 text-right">

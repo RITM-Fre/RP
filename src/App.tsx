@@ -13,6 +13,9 @@ import { ClientPortal } from './components/ClientPortal';
 import { PortfolioShowcase } from './components/PortfolioShowcase';
 import { BotHealthTerminal } from './components/BotHealthTerminal';
 import { Footer } from './components/Footer';
+import { PWAInstallModal } from './components/PWAInstallModal';
+import { PWAInstallBanner } from './components/PWAInstallBanner';
+import { usePWAInstall } from './hooks/usePWAInstall';
 import { ProjectType, Order, AuthUser } from './types';
 import { X } from 'lucide-react';
 import { getOrders } from './services/api';
@@ -36,6 +39,10 @@ export default function App() {
   const [preselectedCategory, setPreselectedCategory] = useState<ProjectType>('video');
   const [pendingCount, setPendingCount] = useState<number>(0);
   const [showAdminLoginModal, setShowAdminLoginModal] = useState<boolean>(false);
+  const [showPWAInstallModal, setShowPWAInstallModal] = useState<boolean>(false);
+
+  // PWA Install management
+  const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
 
   // Authentication states
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => {
@@ -145,7 +152,7 @@ export default function App() {
       dir={lang === 'fa' ? 'rtl' : 'ltr'}
       className="min-h-screen flex flex-col bg-[#07080c] text-[#f1f2f6] relative overflow-x-clip font-sans"
     >
-      {/* Top Navigation */}
+      {/* Top Navigation with PWA Install Trigger */}
       <Navbar
         activeTab={activeTab}
         setActiveTab={changeTab}
@@ -156,6 +163,7 @@ export default function App() {
         isAdminLoggedIn={isAdminLoggedIn}
         onAdminLogout={handleAdminLogout}
         onOpenAdminLogin={() => setShowAdminLoginModal(true)}
+        onOpenInstallModal={() => setShowPWAInstallModal(true)}
       />
 
       {/* Global Announcement Banner (if configured in Admin settings) */}
@@ -176,6 +184,7 @@ export default function App() {
             onStartOrder={handleSelectCategoryForOrder}
             onNavigateToPortfolio={() => changeTab('portfolio')}
             onNavigateToClient={() => changeTab('client')}
+            onOpenInstallModal={() => setShowPWAInstallModal(true)}
           />
         )}
 
@@ -257,12 +266,30 @@ export default function App() {
         </div>
       )}
 
-      {/* Footer (with simple admin access button) */}
+      {/* PWA INSTALL MODAL (iOS Safari + Android/Chrome Guided Install) */}
+      <PWAInstallModal
+        isOpen={showPWAInstallModal}
+        onClose={() => setShowPWAInstallModal(false)}
+        onInstall={install}
+        isInstallable={isInstallable}
+        isIOS={isIOS}
+        lang={lang}
+      />
+
+      {/* PWA FLOATING PROMPT BANNER (Mobile Screen) */}
+      <PWAInstallBanner
+        onOpenInstallModal={() => setShowPWAInstallModal(true)}
+        isInstalled={isInstalled}
+        lang={lang}
+      />
+
+      {/* Footer (with simple admin access button & install button) */}
       <Footer
         lang={lang}
         isAdminLoggedIn={isAdminLoggedIn}
         onOpenAdminLogin={() => setShowAdminLoginModal(true)}
         onNavigateToAdmin={() => changeTab('admin')}
+        onOpenInstallModal={() => setShowPWAInstallModal(true)}
       />
     </div>
   );
